@@ -1,0 +1,95 @@
+---
+title: "BIMBOA.MX: Modelos de Varianza. 2° Examen"
+author: "Hecho por Alan Carrillo, Rodolfo García y Esteban Márquez"
+date: "Fecha 5 de abril del 2022"
+output:
+  rmarkdown::html_document:
+    theme: lumen
+    df_print: paged
+    latex_engine: lualatex
+  df_print: kable
+---
+
+# Promedio Móvil:
+
+
+# EWMA:
+
+
+# GARCH:
+
+
+# ARCH:
+
+
+
+**Objetivo de la actividad:** 
+ 
+- Evaluar el aprendizaje sobre los **modelos de varianza** que se trabajaron en clase; 
+**Promedios móviles, EWMA** y los modelos **ARCH/GARCH**. La evaluación de este aprendizaje 
+consistirá  en la elaboración y presentación de un póster, cartel o **infografía**.  
+- Fomentar el **trabajo en equipo** para que el estudiante practique el respeto a las formas de 
+pensar e ideas que proponga su compañero de trabajo. 
+- Mejorar  la  capacidad  del  estudiante  para  expresarse  de  forma  oral  al  presentar  los 
+resultados obtenidos de la aplicación a un caso de estudio real. 
+ 
+## Indicaciones para el desarrollo de la actividad 
+ 
+En equipos  de trabajo, deberán preparar un  póster de investigación (cartel o infografía) que les 
+permita **explicar las metodologías** de los modelos de varianza (características y diferencias entre 
+ellos)  así  como  los  **resultados  que  obtuvieron  de  la  aplicación  de  cada  metodología**  al  caso  de 
+estudio (activo) que se encuentran trabajando. El póster que cada equipo prepare se presentará 
+ante  el  resto  del  grupo.  Además,  cada  equipo  dispone  de  un  **máximo  de  15  minutos**  para  su 
+presentación. Todos loes estudiantes del equipo, deben tener claridad sobre que hicieron, porque 
+lo hicieron y que resultados obtuvieron.  
+ 
+El objetivo de un  póster es comunicar una o más  ideas de forma clara. El éxito de un póster es 
+**disminuir el uso de texto** y recurrir a imágenes visuales.  
+ 
+Cada equipo podrá hacer uso de las herramientas que considere adecuadas para el desarrollo de su trabajo. El póster puede debe ser de manera digital y puede hacer uso de Word, Prezi, Genially, 
+Power Point, etc. 
+ 
+### Evaluación de la actividad 
+ 
+#### Rubrica para la presentación individual.
+
+**Excelente:** No lee una guía, demuestra preparación y comprensión. Sus argumentos son puntuales y no divaga **(40pts)**.
+
+**Regular:** El estudiante titubea, sus explicaciones son confusas y a veces divaga **(20pts)**.
+
+**Deficiente:** El estudiante memorizó el texto y no puntualiza **(10pts)**.
+
+####Pregunta indiv. 
+**Excelente:** Contestó correctamente, claro, completo y puntual **(10pts)**.
+
+**Regular:** Correctamente, pero de forma vaga **(5pts)**.
+
+**Deficiente:** Contestó incorrectamente **(0pts)**.
+
+#### Rubrica para la evaluación del trabajo en equipo.
+- **Resultados y metodologías**: 
+
+**Excelente:** No hay errores en las metodologías ni en los resultados y todos los integrantes lo entienden y lo pueden explicar **(30pts)**.
+
+**Regular:** Existen pequeños errores en las metodologías o resultados **(20pts)**.
+
+**Deficiente:** Existen errores graves en las metodologías o resultados **(10pts)**.
+
+##### Calidad de la infografía: 
+
+**Excelente:** El póster, cartel o infografía comunica de 
+manera  clara  el  trabajo. No tiene exceso de información (principalmente letras). Contiene elementos visuales que facilitan la interpretación de los resultados **(10pts)**. 
+
+**Regular:** N/A.
+
+**Deficiente:**El póster, cartel o infografía  está  lleno  de 
+letras. Es un trabajo poco claro **(2pts)**.
+ 
+##### Uso adecuado del tiempo: 
+**Excelente:** Los estudiantes transmitieron la 
+información completa dentro del límite de tiempo. Además, ambos participaron de forma equitativa **(10pts)**.
+
+**Regular:** Los estudiantes transmitieron la información completa dentro del límite de tiempo.  Sin  embargo,  la 
+participación no fue equilibrada.  **(5pts)**.
+
+**Deficiente:** Los estudiantes no transmitieron la información completa dentro del límite de tiempo. **(2pts)**.

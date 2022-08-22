@@ -1,0 +1,199 @@
+---
+title: "Proyecto Final AR_BIMBOA.MX 1° Entrega"
+author: "ACarrillo_García_EMárquez"
+date: "Enero 31, 2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+![](C:\Users\Esteban\Desktop\ITESO\8°\Análisis de Riesgos\BIMBOA.MX\Grupo_Bimbo.jpg)
+
+### 1. **Introducción** al activo.
+
+Panificación Bimbo nació en 1943 en la Ciudad de México y es en la actualidad una empresa multinacional cuya razón social Grupo Bimbo, S.A.B. de CV registra alrededor de 300 mil mdp en Ventas Netas anuales mediante la comercialización de sus más de 5,000 productos vendidos a través de más de 100 marcas como Tia Rosa, Ricolino, Marinela, Barcel, entre otros (4.1. INBURSA. Estados Financieros).
+
+##### 1.1 Fecha de inicio de **cotizaciones**.
+
+Su emisora cotiza bajo el nombre de BIMBOA.MX en la Bolsa Mexicana de Valores donde colocó su oferta pública inicial el 19 de Febrero del 1980 (4.2. IXEBANCO. Datos Generales, BIMBOA).
+
+Debido a su gran volumen de operación en la BMV es una de las 35 empresas que forma parte del Indice de Precios y Cotizaciones (IPC) y además es uno de los 10 componentes principales por ponderación de capitalización de mercado en dicho índice (4.3 Rankia. Empresas del IPC para el 2022).
+
+También cotiza en el mercado extrabursátil o *Over The Counter* de Estados Unidos a través de un ADR de Nivel 1 con el nombre de BMBOY (4.4 Grupo Bimbo. Resultados de Q1 2021).
+
+
+##### 1.2 ¿A que se **dedican**?
+
+La razón social de Grupo Bimbo, S.A.B. de CV pertenece al sector de consumo y subsector de alimentos, bebidas y tabaco en el ramo de los alimentos (4.5 Grupo BMV. Perfil, Grupo Bimbo).
+
+Grupo Bimbo se dedica a la elaboración y distribución de productos alimenticios y es una de las empresas de panificación más importante del mundo (4.6 BIMBO. Porque somos la panificadora más grande del mundo).
+
+
+##### 1.3 **Presencia** en otros países.
+
+Grupo Bimbo tiene presencia global en 33 países y 4 continentes siendo algunos de ellos México, Estados Unidos, Canadá, gran parte de Latinoamérica, España, Portugal, Francia, Italia, Reino Unido, Turquía, Suiza, Ucrania, Kazajistán, China, Corea del Sur, Rusia, India, Marruecos, Sudáfrica e Israel (4.7 Opportimes. Nuevas marcas de Bimbo de alto valor).
+
+Su última asociación internacional fue en Kazajistán de Asia Central donde Bimbo aseguró el 51% de participación con el proveedor de McDonald's, Food Town, en dicha región. Más sin embargo, Europa, Asia y Africa representan tan sólo el 9% de su mercado (4.8 El Universal. Extiende Bimbo presencia global).
+
+##### 1.4 **Marcas** Relacionadas.
+
+El portafolio de Bimbo se compone de más de 100 marcas y algunas de sus principales con ventas superiores a los 1,000 mdd son Bimbo, Marinela, Oroweat, Barcel, Thomas', Sara Lee y Entenmann's. Una marca con ventas superiores a los 500 mdd es Takis y superiores a los 250mdd es Ricolino, Tia Rosa, Dempster's, Artesano y Ball Park. Algunas otras que que no estan contenidas en las anteriores categorías son Wonder, Villaggio, Donuts, Pullman, POM, Vachon, Ideal, Mankattan y Mrs. Baird's (4.7 Opportimes. Nuevas marcas de Bimbo de alto valor).
+
+
+##### 1.5 Número de **trabajadores** que tiene.
+
+Grupo Bimbo tiene una de las redes de distribución más grandes del
+mundo, con más de 2.9 millones de puntos de venta, más de 53,000 rutas y más de 134,000
+colaboradores de entre los cuales alrededor de 100,000 son obreros (4.4 Grupo Bimbo. Resultados de Q1 2021).
+
+##### 1.6 **Ubicación** de plantas de producción:
+
+El número de fábricas de Grupo Bimbo a nivel mundial asciende a 203 entre las cuales alrededor de 78 se encuentran en Estados Unidos y Canadá. México cuenta con 38 de dichas plantas de producción, Latinoamérica 32, Europa 25, Asia 24 y Africa 6 (4.9 Statista. Number of factories of Grupo Bimbo in 2020 by region).
+
+###### **Resultados**: 
+En conclusión, Grupo Bimbo se ha convertido a lo largo de los años en una de las panificadoras con mayor presencia global. Más sin embargo, su potencial de crecimiento todavía es fuerte debido a que Europa, Asia y Africa representan sólo el 9% de su mercado y ha fortalecido últimamente su presencia en dichos continentes en los últimos años.
+
+### 2. **Reportes trimestrales** (2019, 2020, 2021, y curso del 2022).
+
+##### 2.1 Utilidad trimestral por acción **(UPA)**.
+
+En este apartado estaremos observando y analizando la utilidad por acción, para la cual fue necesario buscar en los reportes trimestrales oficiales por parte de BIMBO la utilidad neta de cada periodo y de la pagina de la BMV el total de acciones en circulación, podemos observar que en cada periodo siempre hubo utilidad y que a principios de la pandemia se vieron fuertemente afectados pero eso no impidió que hubiera una pequeña ganancia a comparación de otros trimestres, por ultimo vemos que pudieron recuperarse rápidamente y volver a como estaban antes de la pandemia.
+
+Documentación de UPA: **Utilidad Neta** de la empresa entre el Número de Acciones en Circulación para cada trimestre mediante una tabla:
+
+| Trimestre | Utilidad Neta | Acciones en Circulacion | UPA        |
+|-----------|---------------|-------------------------|------------|
+| Q1-2019   | 1,318,000,000 | 4,475,068,991           | 0.2945206  |
+| Q2-2019   | 1,222,000,000 | 4,475,068,991           | 0.27306842 |
+| Q3-2019   | 1,940,000,000 | 4,475,068,991           | 0.43351287 |
+| Q4-2019   | 1,825,000,000 | 4,475,068,991           | 0.40781494 |
+| Q1-2020   | 20,000,000    | 4,475,068,991           | 0.0044692  |
+| Q2-2020   | 2,581,000,000 | 4,475,068,991           | 0.57675088 |
+| Q3-2020   | 3,579,000,000 | 4,475,068,991           | 0.79976421 |
+| Q4-2020   | 2,890,000,000 | 4,475,068,991           | 0.6458001  |
+| Q1-2021   | 4,075,000,000 | 4,475,068,991           | 0.91060049 |
+| Q2-2021   | 3,065,000,000 | 4,475,068,991           | 0.68490564 |
+| Q3-2021   | 4,031,000,000 | 4,475,068,991           | 0.90076824 |
+| Q4-2021   | NA            | NA                      | NA         |
+| Q1-2022   | NA            | NA                      | NA         |
+(4.12 Grupo Bimbo. Reportes Trimestrales).
+
+En cuanto al UPA podemos observar cual seria la utilidad de cada acción en cada trimestre, observando su desempeño nos damos cuenta que en estos últimos años BIMBO ha estado pagando dividendos a sus inversores lo cual nos demuestra que la empresa puede estar financieramente sana.
+
+##### 2.2 **Splits**.
+
+En cuanto a los splits, solo se han hecho 2 veces, los cuales su relación es de **4:1**, esto quiere decir que una acción se divido en 4, así aumentado las acciones en circulación y el total de acciones de cada inversionista sin afectar su inversión ya que siguen teniendo el mismo monto invertido.
+
+| Fecha           | Split | Cambio en el Precio |
+|-----------------|-------|---------------------|
+| 29/Abril/2011   | 4:1   | $25.347  a 6.337    |
+| 19/Febrero/1998 | 4:1   | NA                  |
+(4.10 Grupo Bimbo. Informes Anuales).
+
+##### 2.3 **Dividendos**.
+
+Como se mencionaba en la parte del UPA, aquí podemos observar y confirmar que BIMBO efectivamente ha estado entregando dividendos a sus accionistas, en sus datos históricos encontramos que durante el 2014 y el 2015 no pudo dar dividendos desde 1994. Durante estos 28 años entrego 31 dividendos con una tasa de interés o rendimiento promedio de 1.12% sobre estos.
+
+![](C:\Users\Esteban\Desktop\ITESO\8°\Análisis de Riesgos\BIMBOA.MX\Dividendos_Bimbo.jpg)
+
+(4.13 Investing. Dividendos de BIMBOA).
+
+
+
+### 3. Riesgos.
+
+Identificación de riesgos a los que BIMBO está o ha estado sujeta.
+
+En esta sección se desglozarán los diversos riesgos a los que grupo BIMBO está sujeto, esto se realizó principalmente gracias a la misma publicación de los riesgos a los que están sujetos en su página oficial, de ahí se pudo extraer lo que Bimbo considera como riesgo que pueda afectar el desempeño, la situación financiera o los resultados de operación de su grupo. (4.14 Riesgos. Grupo BIMBO)
+
+#### 3.1 Riesgos *sistemáticos*:
+
+##### 3.1.1 Riesgos **económicos**:
+
+En los riesgos económicos encontramos uno de los principales que es la competencia, la industria de la panificación es altamente competitiva y el crecimiento de esta puede reducir el porcentaje de participación en el mercado de BIMBO. BIMBO compite con compañías nacionales e internacionales, panaderías tradicionales, cadenas de autoservicio con panadería, panaderías familiares y locales, compañías de alimentos diversificadas, etc. Por lo que la competencia de grupo BIMBO es muy amplia y esta es uno de los principales riesgos que tiene la compañía.
+
+Relacionado al riesgo anterior, BIMBO también admite que a su vez una consolidación de la competencia minorista puede generar un alto riesgo de pérdida de participación en el mercado.
+
+Otro riesgo económico que plantea BIMBO es que no tienen la capacidad de anticipar cambios en las perferencias de los consumidores, por lo que este escenario puede generar una caída en la demanda de los productos y afectar a nivel completo a grupo BIMBO, por ello, se han enfocado en diversificar su oferta en cientos de productos, para así poder innovar de forma constante y tratar de adaptarse a la mayor cantidad de cambios posibles.
+
+##### 3.1.2 Riesgos **políticos**:
+
+Gran porcentaje de las ventas totales de grupo BIMBO son realizadas en México, por lo que ellos reconocen que cualquier manejo político o financiero por parte del gobierno mexicano los puede afectar en áreas que están fuera de su control, como lo sería la condición general de la economía mexicana, inestabilidad de precios, inflación, tasas de interés, legislación, impuestos, aumento en el índice de delitos y otras cuestiones políticas, sociales o económicas en o que afecten a México.
+
+A su vez, grupo BIMBO tiene presencia en EUA, Europa, Canadá y Latinoamérica, por lo que cualquier manejo por parte del gobierno extranjero relacionado con los ya antes mencionados pueden generar por lo menos la misma cantidad de riesgos para grupo BIMBO como los posibles en el escenario nacional.
+
+##### 3.1.3 Riesgos financieros:
+
+##### 3.1.3.1 Riesgo de **mercado**:
+
+El riesgo de mercado consiste en la fluctuación y volatilidad de los activos derivados y relacionados con grupo BIMBO, así como los que poseé como los dividendos que emite a sus accionistas.
+
+##### 3.1.3.2 Riesgo **cambiario**:
+
+Grupo BIMBO opera en muchos países con diferentes monedas, por lo que tiene un sistema relacionado de precios y costos entre diferentes divisas, lo que abre las puertas a riesgos muy fuertes en escenarios donde se generen fluctuaciones cambiarias altas, a su vez esto afecta la emisión y pagos de dividendos de los accionistas.
+
+##### 3.1.3.3 Riesgo de **liquidez**:
+
+Grupo BIMBO está expuesto a incurrir en deudas adicionales que podrían generar efectos negativos en la liquidez de la empresa para pagar dividendos, ya que puede tener como prioridad su flujo de efectivo para realizar los pagos de las deudas y carecer de liquidez suficiente para sus otras obligaciones.
+
+##### 3.2 Riesgos *no sistemáticos*:
+
+##### 3.2.1 Riesgos **tecnológicos** :
+
+El principal riesgo que corre grupo BIMBO en este aspecto es una interrupción en la cadena de suministro o en la red de distribución, ya que esta depende de sistemas tecnológicos y de operación que funcionan continuamente, una interrupción de esto generaría un problema a nivel logístico en grupo BIMBO lo cual podría impactar gravemente en los ingresos y costos.
+
+##### 3.2.2 Riesgos **operativos**:
+
+Grupo BIMBO corre el riesgo de enfrentar prácticas de divulgación de información confidencial en México y cualquier país de operación que pueda poner en riesgo información delicada afectando su funcionamiento y/o beneficiando a la competencia.
+
+##### 3.3 **Otros** riesgos:
+
+La reputación de las marcas y derechos de propiedad de grupo BIMBO son clave para su buen funcionamiento, la imagen de grupo BIMBO hacia sus clientes es elemental para conservar y aumentar la demanda de sus productos, ya que una imagen errónea puede afectar negativamente las ventas y crecimiento.
+
+
+-   4.  **Bibliografía**.
+    
+    4.1 INBURSA. Estados Financieros (2021). Consultado el 3 de febrero de 2022, de:   https://www.inbursa.com/storage/BIMBO.pdf
+    
+    4.2 IXE Banco. Datos Generales, BIMBOA (2021). Consultado el 3 de febrero de 2022, de: 
+    https://finanzasenlinea.infosel.com/ixe/PerfilMexico.aspx?simbolo=BIMBOA
+    
+    4.3 Rankia. Empresas del IPC para el 2022 (2021). Consultado el 3 de febrero de 2022, de: 
+    https://www.rankia.mx/acciones/indice-precios-cotizaciones-ipc/blog/4961610-que-empresas-tiene-indice-precios-cotizaciones-bmv
+    
+    4.4 Grupo Bimbo. Estado Resultados Q1 2021 (2021). Consultado el 3 de febrero de 2022, de: 
+    https://grupobimbo-com-custom01-assets.s3.amazonaws.com/s3fs-public/Grupo-Bimbo-Reporta-Resultados-del-1T21.pdf
+    
+    4.5 Grupo BMV. Perfil, Grupo Bimbo (2022). Consultado el 3 de febrero de 2022, de: 
+    https://www.bmv.com.mx/es/emisoras/perfil/BIMBO-5163
+    
+    4.6 BIMBO. Porque somos la panificadora más grande del mundo (2021). Consultado el 3 de febrero de 2022, de: 
+    https://www.bimbo.com.mx/es/conocenos
+    
+    4.7 Opportimes. Nuevas marcas de Bimbo de alto valor (2021). Consultado el 3 de febrero de 2022, de: 
+    https://www.opportimes.com/nuevas-marcas-de-bimbo-de-alto-valor-vachon-mankattan-y-wonder/
+    
+    4.8 El Universal. Extiende Bimbo presencia global (2020). Consultado el 3 de febrero de 2022, de: 
+    https://www.eluniversal.com.mx/cartera/extiende-bimbo-presencia-global-llega-kazajistan
+    
+    4.9 Statista. Number of factories of Grupo Bimbo in 2020 by region (2022). Consultado el 3 de febrero de 2022, de: 
+    https://www.statista.com/statistics/797050/factories-bimbo/
+    
+    4.10 Grupo Bimbo. Informe Anual 1998 (1998). Consultado el 5 de febrero de 2022, de: https://grupobimbo-com-assets.s3.amazonaws.com/s3fs-public/reportes-2020/INFORME%20ANUAL%201998.pdf?VersionId=DEvwrjnFRfJ7zFsJ.mfqC7BjTSb2o4vg
+    
+    4.11 Grupo Bimbo. Informe Anual 2011 (2011). Consultado el 5 de febrero de 2022, de: https://grupobimbo-com-assets.s3.amazonaws.com/s3fs-public/reportes-2020/Grupo-Bimbo-informe-anual-2011_0.pdf?VersionId=klqj_JV6kUr5ZdzWD4SacncKBLAS8BVF
+    
+    4.12 Grupo Bimbo. Reportes Trimestrales (2021). Consultado el 5 de febrero de 2022, de: https://www.grupobimbo.com/es/inversionistas/reportes/reportes-trimestrales
+    
+    4.13 Investing. Dividendos de BIMBOA (2022). Consultado el 5 de febrero de 2022, de: https://mx.investing.com/equities/bimbo-a-dividends
+    
+    4.14 Grupo Bimbo. *Milenio* Riesgos (2021). Consultado el 5 de febrero de 2022, de: 
+    http://milenio3.com.mx/bimbo_micrositio/acerca-de/riesgos.html
+    
+
+
+
+
+

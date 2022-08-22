@@ -1,0 +1,223 @@
+---
+title: "Análisis de Riesgos de BIMBOA.MX Entrega 4: Portafolio de 5 activos con mayor y menor correlación con BIMBO."
+author: "Hecho por Alan Carrillo, Rodolfo García y Esteban Márquez"
+date: "Fecha 29 de marzo del 2022"
+output: html_document
+---
+
+# Instrucciones: 
+Usando los 5 activos mas correlacionados y menos correlacionados con el activo que están analizando en su proyecto, efectuar un portafolio de pesos iguales y estimar el rendimiento anual promedio desde la fecha de datos que proporciona R. 
+
+Para presentar su trabajo elaboren un archivo en R y suban el html que se genera. 
+
+**Nota:** Html con código visible.
+
+```{r librerias, echo=TRUE, message=FALSE, warning=FALSE}
+library(fpp3) 
+library(tidyquant)
+library(plotly) 
+library(quantmod)
+library(rcompanion)
+library(PerformanceAnalytics)
+library(tidyverse)
+library(moments)
+library(lubridate)
+```
+
+```{r Carga de Archivo-Automática (con ruta), warning=FALSE}
+setwd("C:/Users/Esteban/Desktop/ITESO/8°/Análisis de Riesgos")
+emisoras <- read_csv("Emisoras_Completo2.csv")
+```
+## Introducción: 
+En la presente tarea se obtendrán los precios y rendimientos del activo BIMBOA.MX, el índice bursátil mexicano IPC y los activos más y menos correlacionados con BIMBOA.MX.
+Con lo anterior, se realizarán portafolios seleccionando de los más y menos correlacionados cinco cuya fecha de inicio de cotizaciones sea ántes del 2012 del 31 de Marzo para que los históricos coincidan .
+
+1. Se obtendrán los precios y rendimientos del activo y del mercado con la siguiente ecuación sobre los precios:
+
+**Rendimiento:**
+$$\mu_i = L_n(S_i)-L_n(S_{i-1}) = L_n\left(\frac{S_i}{S_{i-1}}\right)$$
+```{r Descarga de precios de activo BIMBOA.MX y el mercado IPC, echo=TRUE, warning=FALSE}
+datos <- new.env()
+#BIMBO
+clave <- 'BIMBOA.MX'
+getSymbols(clave, from="2012-03-31", env=datos)
+precio <- na.omit(datos[[clave]][,6])
+rendimiento <- na.omit(diff(log(na.omit(precio))))
+data.frame(rendimiento)
+#IPC
+getSymbols("^MXX", from="2012-03-31")
+rend_mercado <- na.omit(diff(log(MXX$MXX.Adjusted)))
+data.frame(rend_mercado)
+```
+
+Ahora se comparan los históricos de los rendimientos de BIMBO con el resto de las acciones en la BMV.
+
+```{r}
+lista <- as.matrix(emisoras)
+```
+
+
+```{r warning=FALSE}
+n <- length(lista)
+mat_cor_ac <- matrix(nrow = n, ncol = 2)
+for (i in 1:n) {
+  ticket <- lista[i]
+  getSymbols(ticket, env = datos)
+  precio2 <- na.omit(datos[[ticket]][,6])
+  rendimiento2 <- na.omit(diff(log(precio2)))
+  datos_cor2 <- na.omit(merge.xts(rendimiento, rendimiento2))
+  #chart.Correlation(datos_cor2)
+  ro <- cor(datos_cor2)[1,2]
+  mat_cor_ac[i,2] <- ro
+  mat_cor_ac[i,1] <- ticket
+}
+```
+
+Estos son los 10 activos más correlacionados con BIMBOA.MX.
+
+```{r}
+options(scipen = 99)
+mat_cor_ac <- as.data.frame(mat_cor_ac)
+names(mat_cor_ac) <- c('Activo', 'Ro')
+menos_corr <- arrange(mat_cor_ac,Ro)[1:10,]
+menos_corr
+```
+
+Se procede a obtener los precios activos más correlacionados cuyo común inicio de fecha de cotizaciones es anterior a 10 años de la realización del presente documento. 
+
+```{r Descarga de precios de activos más correlacionados con lista, echo=TRUE, warning=FALSE}
+N <- 6
+clave2 <- 'GFNORTEO.MX'
+clave3 <- 'AMXL.MX'
+clave4 <- 'KIMBERA.MX'
+clave5 <- 'GFINBURO.MX'
+clave6 <- 'GCARSOA1.MX'
+#Precios.
+getSymbols(clave, from="2012-03-31", env=datos)
+precio <- na.omit(datos[[clave]][,6])
+getSymbols(clave2, from="2012-03-31", env=datos)
+precio2 <- na.omit(datos[[clave2]][,6])
+getSymbols(clave3, from="2012-03-31", env=datos)
+precio3 <- na.omit(datos[[clave3]][,6])
+getSymbols(clave4, from="2012-03-31", env=datos)
+precio4 <- na.omit(datos[[clave4]][,6])
+getSymbols(clave5, from="2012-03-31", env=datos)
+precio5 <- na.omit(datos[[clave5]][,6])
+getSymbols(clave6, from="2012-03-31", env=datos)
+precio6 <- na.omit(datos[[clave6]][,6])
+```
+Después obtenemos sus rendimientos y creamos el portafolio de pesos iguales.
+
+```{r}
+#Retornos.
+rendimiento2 <- na.omit(diff(log(na.omit(precio2))))
+rendimiento3 <- na.omit(diff(log(na.omit(precio3))))
+rendimiento4 <- na.omit(diff(log(na.omit(precio4))))
+rendimiento5 <- na.omit(diff(log(na.omit(precio5))))
+rendimiento6 <- na.omit(diff(log(na.omit(precio6))))
+
+port_r <- rendimiento*(1/N)+rendimiento2*(1/N)+rendimiento3*(1/N)+rendimiento4*(1/N)+rendimiento5*(1/N)+rendimiento6*(1/N)
+names(port_r) <- 'Portafolio'
+data.frame(port_r)
+```
+Teniendo nuestro portafolio de BIMBO y los activos de la BMV más correlacionados con este, lo graficamos contra el mercado desde hace 10 años.
+
+```{r}
+plot(merge.xts(port_r, rend_mercado), legend.loc = 'bottom', main = 'Portafolio más correlacionado a BIMBO e IPC')
+```
+
+
+```{r}
+mascorr <- merge.xts(rendimiento2,rendimiento3,rendimiento4,rendimiento5,rendimiento6)
+data.frame(mascorr)
+
+
+RenDiario=mean(mascorr)
+RenAnual=mean(mascorr)*252
+VolDiaria=sd(mascorr)
+VolAnual=sqrt(VolDiaria)*252
+
+RenDiario
+RenAnual
+VolDiaria
+VolAnual
+```
+
+Estos son los 10 activos menos correlacionados con BIMBOA.MX.
+```{r}
+options(scipen = 99)
+mas_corr <- arrange(mat_cor_ac,Ro)[104:114,]
+mas_corr
+```
+
+Se procede a obtener los precios activos menos correlacionados cuyo común inicio de fecha de cotizaciones es anterior a 10 años a la realización del presente documento. 
+
+```{r Descarga de precios de activos menos correlacionados con lista, echo=TRUE, warning=FALSE}
+N <- 6
+clave7 <- 'CONVERA.MX'
+clave8 <- 'COLLADO.MX'
+clave9 <- 'CMRB.MX'
+clave10 <- 'GPROFUT.MX'
+clave11 <- 'DINEB.MX'
+#Precios.
+getSymbols(clave, from="2012-03-31", env=datos)
+precio <- na.omit(datos[[clave]][,6])
+getSymbols(clave7, from="2012-03-31", env=datos)
+precio7 <- na.omit(datos[[clave7]][,6])
+getSymbols(clave8, from="2012-03-31", env=datos)
+precio8 <- na.omit(datos[[clave8]][,6])
+getSymbols(clave9, from="2012-03-31", env=datos)
+precio9 <- na.omit(datos[[clave9]][,6])
+getSymbols(clave10, from="2012-03-31", env=datos)
+precio10 <- na.omit(datos[[clave10]][,6])
+getSymbols(clave11, from="2012-03-31", env=datos)
+precio11 <- na.omit(datos[[clave11]][,6])
+```
+
+
+Después obtenemos sus rendimientos y creamos el portafolio de pesos iguales.
+
+```{r}
+#Retornos.
+rendimiento7 <- na.omit(diff(log(na.omit(precio7))))
+rendimiento8 <- na.omit(diff(log(na.omit(precio8))))
+rendimiento9 <- na.omit(diff(log(na.omit(precio9))))
+rendimiento10 <- na.omit(diff(log(na.omit(precio10))))
+rendimiento11 <- na.omit(diff(log(na.omit(precio11))))
+
+port_r2 <- rendimiento*(1/N)+rendimiento7*(1/N)+rendimiento8*(1/N)+rendimiento9*(1/N)+rendimiento10*(1/N)+rendimiento11*(1/N)
+names(port_r2) <- 'Portafolio'
+data.frame(port_r2)
+```
+
+Teniendo nuestro portafolio de BIMBO y los activos de la BMV menos correlacionados con este, lo graficamos contra el mercado desde hace 10 años.
+
+```{r}
+plot(merge.xts(port_r2, rend_mercado), legend.loc = 'bottom', main = 'Portafolio menos correlacionado a BIMBO e IPC')
+```
+
+
+```{r}
+RenDiario=mean(port_r2)
+RenAnual=mean(port_r2)*252
+VolDiaria=sd(port_r2)
+VolAnual=sqrt(var(port_r2)*252)
+RenDiario
+RenAnual
+VolDiaria
+VolAnual
+```
+1] 0.0002796572
+[1] 0.07047361
+[1] 0.01900052
+[1] 34.73628
+
+
+# Preguntas:
+1. ¿Qué esperabas que pasará con el rendimiento del portafolio de los más correlacionados, respecto al portafolio de los menos correlacionados? Lo que se esperaría que pasara con el portafolio de BIMBO y los cinco activos con mayor correlación sería que tuvieran movimientos fuertes y debido a la correlación de BIMBO con el mercado, podríamos esperar que se moviera en la misma dirección por lo general pero con mayor fuerza siendo el efecto contrario del portafolio con menor correlación para ambos, BIMBO y mercado. Podríamos elegir dicho portafolio menos correlacionado como cobertura de la tenencia de BIMBOA.MX.
+
+2. ¿Qué sucedió con el rendimiento del portafolio de los más correlacionados, respecto al portafolio de los menos correlacionados?
+El rendimiento del portafolio más correlacionado tiene mayor volatilidad por lo mencionado anteriormente, es decir, hay exposición al mercado. Y sus rendimientos diarios y anuales son menores. 
+
+3. ¿Qué puedes concluir de esta pequeña actividad?
+Lo que se puede concluir es que sería una decisión inteligente efectuar coberturas.

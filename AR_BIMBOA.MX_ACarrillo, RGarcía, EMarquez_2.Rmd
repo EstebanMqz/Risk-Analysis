@@ -1,0 +1,211 @@
+---
+title: "Proyecto Final AR_BIMBOA.MX 2° Entrega (Precio y PIB)"
+author: "ACarrillo_García_EMárquez"
+date: "Febrero 14, 2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+![](C:\Users\Esteban\Desktop\ITESO\8°\Análisis de Riesgos\BIMBOA.MX\Grupo_Bimbo.jpg)
+
+```{r, message=FALSE,warning=FALSE}
+library(quantmod)
+library(PerformanceAnalytics)
+library(tidyverse)
+library(moments)
+library(lubridate)
+library(fpp3)
+library(tidyquant)
+library(plotly)
+```
+
+#### **Seccion 1**: Comportamiento del precio del activo (*BIMBOA.MX*).
+
+BIMBOA.MX cotiza en la Bolsa Mexicana de Valores desde el 19 de Febrero del 1980 (IXEBANCO. Datos Generales, BIMBOA). Sin embargo, mediante la api de Yahoo Finance que permite su descarga con R y los datos históricos descargables en csv y xlsx en la fuente mencionada, hacen disponibkle el comportamiento en el precio del activo sólo desde el año 2000.
+
+
+```{r message=FALSE, warning=FALSE}
+  clave <- c('BIMBOA.MX')
+  getSymbols(clave,from= '2000-01-01' ,warnings = FALSE, src="yahoo")
+  lista <- lapply(clave, function(x) Cl(get(x)))
+  precio <- (do.call(merge,lista))
+  
+  chartSeries(to.monthly(precio), theme="white", up.col="blue", dn.col="red",
+            name = paste("Precio de BIMBOA.MX", clave))
+addBBands()
+```
+
+Debido a la escalabilidad es difícil apreciar movimientos importantes, razón por la cual se optará por trabajar con los datos a partir del 2007, desde donde se podrán observar más de cerca las líneas de tendencia y los soportes y resistencias.
+
+```{r message=FALSE, warning=FALSE}
+  clave <- c('BIMBOA.MX')
+  getSymbols(clave,from= '2007-01-01' ,warnings = FALSE, src="yahoo")
+  lista <- lapply(clave, function(x) Cl(get(x)))
+  precio <- (do.call(merge,lista))
+  
+  chartSeries(to.monthly(precio), theme="white", up.col="blue", dn.col="red",
+            name = paste("Precio de BIMBOA.MX", clave))
+addBBands()
+```
+
+Mediante esta gráfica es que se puede identificar que en el 2007 la acción de Bimbo tocó los 20.0 mxn, un nivel de resistencia importante porque además de ser una decena, el bigote de la vela en grandes y medianas temporalidades forma el patrón alcista del martillo por lo general, lo cual significa que el mercado intentó bajar su precio y no pudo, señal de compra.
+
+Esto vino tras el pago de Dividendos de 0.10 mxn el 2 Mayo del 2007 que significó un retorno sobre la acción por pago de dividendos de .66%. El 2 de Mayo del 2007 tuvo un cierre de $15.06 y para el 18 de Mayo tocó los 20.48, valor que no pudó ser alcanzado por el activo hasta Noviembre del 2009, 2 años y medio después.
+
+En esta ocasión BIMBOA.MX venia impulsado tras romper la triple resistencia que lo mantuvo cotizando por debajo de los 17.0 mxn en los últimos 2 años, 2 puestas a prueba en 2008 y una en 2007. 
+
+Su transcurso hasta el 2016 no tuvo caídas significativas y se mantuvo en tendencia fuertemente alcista hasta el 2016, cuando su tendencia se invirtió, provocando una fuerte caída que se prolongó desde 60 mxn en julio del 2016 con terminación en el piso que fue de 25mxn a causa de la crisis del coronavirus en Marzo de 2020.
+
+Desde entonces su recuperación, como se comentará más adelante, ha sido a la par del PIB mexicano y del Índice de Precios y Cotizaciones (IPC) del cual es uno de los 10 componentes principales por ponderación de capitalización de mercado.
+
+#### **Seccion 1.1**: Comportamiento del rendimiento del activo (*BIMBOA.MX*).
+
+```{r}
+Rend <- na.omit(diff(log(na.omit(precio))))
+hist(Rend, n=100,main=paste("Histograma de Rendimientos de", clave), col="brown")
+```
+
+Mediante el histograma de la distribución de sus rendimientos es que nos podemos percatar que su distribución tiene una forma leptocúrtica. Esto significa en términos generales que sus VaRs con bajos N.C no presentan valores extremos.
+
+```{r}
+# %>%:'Pyte' se ingresa con Ctrl-Shift-M
+names(precio) <- c("precio")
+names(Rend) <- c("rendimiento")
+Anio <- year(Rend)
+
+Est_Prin <- Rend %>%
+  as_tibble() %>% 
+  mutate(year=Anio) %>% 
+  group_by(year) %>% 
+  summarise(RenDiario=mean(rendimiento),
+            RenAnual = mean(rendimiento)*252,
+            VolDiaria=sd(rendimiento),
+            VolAnual=sqrt(var(rendimiento)*252))
+```
+
+```{r}
+Ren_Diario_Todo <- mean(Rend)
+Vol_Diario_Todo <- sd(Rend)
+Ren_Diario_Todo*100*252
+Vol_Diario_Todo*100*sqrt(252)
+```
+Al obtenerse la media anual de sus rendimientos se obtiene el valor de 11.49% anual para μ y de 30.15 para su desv. std σ.
+
+```{r}
+Rend %>% 
+  as_tibble() %>% 
+  ggplot(aes(x=rendimiento))+
+  geom_histogram(aes(y=..density..), bins=100, fill="brown", alpha=0.8, color="black")+
+  geom_density(aes(x=rendimiento, col= "Densidad BIMBOA.MX"))+
+  stat_function(fun=dnorm, args = list(mean=Ren_Diario_Todo, sd=Vol_Diario_Todo), aes(col="Densidad Normal"))
+```
+
+Mediante el traslapado de la distribución normal y los rendimientos de BIMBOA.MX es que se concluye que la densidad del activo tiene bastante más densidad en el centro que la normal aunque también presenta pocos outliers en ambas colas.
+
+
+
+#### **Seccion 2**: Comportamiento conjunto del precio del activo (*BIMBOA.MX*) y del PIB.
+*Rendimiento de Bimbo vs tasa de crecimiento del PIB de México.*
+
+### Rendimientos anuales y de la tasa de crecimiento del PIB
+
+En esta parte empezaremos importando nuestros los datos sobre el precio de la acción de BIMBO, para esto, por medio R y Yahoo! Finance obtendremos los datos a partir del año 2000 que es el máximo histórico que Yahoo! Finance nos permite, después haremos la limpieza para dejar el precio al cierre para después poder obtener los rendimientos diarios de la acción, por último, se agruparan los rendimientos por años, así dando un total de 23 años.
+
+Para la tasa de crecimiento del PIB, los datos los vamos a obtener del Banco Mundial a partir del año 2000 para tener una mejor relación con los rendimientos y por medio de Excel es que los vamos a poder importar para poder generar la gráfica.
+
+```{r message=FALSE, warning=FALSE}
+clave <- c('BIMBOA.MX')
+getSymbols(clave,from= '2000-01-01' ,warnings = FALSE)
+lista <- lapply(clave, function(x) Cl(get(x)))
+precio <- (do.call(merge,lista))
+
+Rend <- na.omit(diff(log(na.omit(precio))))
+names(precio) <- c('precio')
+names(Rend) <- c('rendimiento')
+Anio <- year(Rend)
+
+Est_Prin <- Rend %>%
+  as_tibble() %>%
+  mutate(date=Anio) %>%
+  group_by(date) %>% 
+  summarise(Ren_Anual  = mean(rendimiento)*252)
+
+Est_Prin_ts <- Est_Prin %>% mutate(date = date) %>%
+   as_tsibble(index = date)
+
+
+pib_mexico = readr::read_csv('Crecimiento_PIB.csv')
+
+pib_mexico_ts <- pib_mexico  %>%
+  mutate(date = date) %>%
+  as_tibble(index=date)
+
+```
+
+#### **Seccion 2.1**: Gráfica de Rendimiento vs Tasa de Crecimiento del PIB (MX).
+
+Al obtener los datos anuales se integran las tablas de datos para graficar en conjunto los rendimientos de Bimbo y la tasa de crecimiento del PIB para así poder analizar al mismo tiempo su comportamiento.
+
+La grafica a continuación es interactiva y permite comparar de una mejor manera los datos ya que al posicionar el cursor sobre algún año se muestran los datos exactos a comparar.
+
+```{r}
+pib_rend <-full_join(pib_mexico_ts,Est_Prin_ts, by = 'date' ) 
+
+p <- pib_rend %>% ggplot(aes(x=date)) + 
+  geom_line(aes(y = Crecimiento, color='Tasa de Crecimiento del (PIB)')) +
+  geom_line(aes(y = Ren_Anual, color = 'Rendimiento Anual (BIMBOA.MX)')) + 
+  xlab('Año') + ylab(NULL) + 
+  ggtitle('Comportamiento de BIMBO y tasa de crecimiento de México') 
+  
+ggplotly(p)
+
+```
+
+(Yahoo Finance y Banco Mundial)
+
+Como se observa, se detectan ciertas similitudes en cuanto a su comportamiento, tanto en subidas como en bajadas aunque en algunos casos como en año 2009 se puede observar el efecto contrario, siendo la tasa de crecimiento una de las mas bajas del periodo, pero teniendo el rendimiento mas alto del total de años. 
+
+Por otro lado, se pueden ver eventos que afectaron tanto al crecimiento de México como a los rendimientos de BIMBO y son principalmente la crisis de 2008, el cambio de administración por parte del gobierno y el inicio de la pandemia hasta la fecha.
+
+En cuanto a la tasa de crecimiento se puede observar que antes de la pandemia el PIB tenía ya una tendencia bajista que se extendió con la pandemia. Esta situación no permitió una recuperación significativa en la economía y por parte de Bimbo se observa lo mismo, una tendencia a la baja pero pudiendo tener una recuperación posterior significativa.
+
+
+#### **Seccion 2.2:** Efectos e impactos globales.
+
+Es importante diferenciar sobre la gráfica anterior de que estamos hablando, como podemos ver el comportamiento de BIBMO es más volatil que el de la tasa de crecimiento de México, esto se debe principalmente a que el PIB se ve afectado de forma agresiva por sucesos fuertes a nivel global, en cambio grupo BIMBO se puede ver afectado de forma agresiva por cosas más locales.
+
+2002: Podemos ver que BIMBO tuvo una caída, es dificil encontrar el motivo sin embargo uno de los antecedentes que afectaron los flujos de BIMBO fue la depreciación del peso mexicano, lo que ocasionó que su deuda generara notorias pérdidas, sin embargo, vemos que esto no generó un impacto al PIB.
+
+2008: Posteriormente podemos ver cómo en el lapso del 2007 y 2008 tanto el PIB como BIMBO sufrió un impacto negativo, esto debido a la gran deuda que se generó debido a los créditos subprime en EUA, lamentablemente esto afectó a todo el mundo y recayó en la economía de los ciudadanos mexicanos y la inflación de precios
+
+Último año: Mas que hacer un análisis del último año debemos  hacer un análisis de la situación reciente de COVID-19, vemos que en el 2019 BIMBO había bajado su nivel de rendimiento y a su vez el PIB, esto se derivó del mal manejo a nivel gubernamental en la parte financiera, en ese momento México había tenido el peor incremento de PIB en años, se contrajo, por lo que hubo mucha relación directa con el manejo del gobierno y su mal funcionamiento, sin embargo sucede algo curioso, a simple vista puede ser extraño ver como el efecto COVID-19 afectó tanto al PIB sin embargo ayudó mucho a BIMBO, hay que recordar algo aquí, el COVID-19 generó un estancamiento a nivel económico del que aún no salimos, deteniendo una gran parte del flujo de negocios y pérdida de ventas así como de puestos de trabajo, sin embargo, hay que irnos a la raíz de esto, la pandemía nos obligó a estar en casa encerrados, esto detuvo la economía, sin embargo lo que impulsó fue el tema de las compras excesivas de despensa y compras de pánico, a su vez, la gente compraba de más por miedo a quedarse cortos de comida y tener que salir a exponerse, por lo que esto generó un gran nivel de ventas en relación a los objetos de la canasta básica, aumentando las ventas de BIMBO por ende, por ello, podemos ver como el estancamiento económico sigue golpeando duro al PIB pero las compras "escenciales" se han incremento de forma drástica, es por ello que en el sector alimenticio vemos como se han visto beneficiadas las empresas de este tipo por el efecto pandemia, si estuvieramos analizando una empresa de venta de servicios veríamos un efecto similar al de PIB.
+
+
+
+### Referencias 
+
+IXE Banco. Datos Generales, BIMBOA (2021). Recuperado el 17 de Febrero de 2022, de Banco Mundial:
+<https://finanzasenlinea.infosel.com/ixe/PerfilMexico.aspx?simbolo=BIMBOA>
+
+Banco Mundial. (s.f.). *Banco Mundial.* Recuperado
+el 17 de Febrero de 2022, de Banco Mundial:
+<https://datos.bancomundial.org/indicator/NY.GDP.MKTP.KD.ZG?end=2020&locations=MX&start=2000&view=chart>
+
+Grupo Bimbo. *Grupo BIMBO* Recuperado el
+17/ de Febrero de 2022, de mzweb:
+<http://mzweb.com.br/grupobimbo/web/arquivos/GrupoBimbo_SI_CD_20030626_esp.pdf>
+
+Espejos de la crisis económica mundial. La crisis alimentaria y las alternativas de los productores de granos básicos en México Recuperado el
+17/ de Febrero de 2022, de scielo:
+<http://www.scielo.org.mx/scielo.php?script=sci_arttext&pid=S0187-57952010000200008>
+
+Economía mexicana se contrajo 0.14% durante el 2019, confirma el Inegi. *El Economista* Recuperado el
+17/ de Febrero de 2022, de El Economista:
+<https://www.eleconomista.com.mx/economia/Economia-mexicana-se-contrajo-0.14-durante-el-2019-confirma-el-Inegi-20200226-0019.html>
+
+Yahoo Finance. (s.f.). *Yahoo Finance.*
+Recuperado el 15 de Febrero de 2022, de Yahoo Finance: <https://finance.yahoo.com/quote/BIMBOA.MX/history?p=BIMBOA.MX>
+
+

@@ -1,0 +1,466 @@
+---
+title: "Análisis de Riesgos de BIMBOA.MX Entrega 3: Rendimientos y volatilidades, pruebas de normalidad y estimación de probabilidades"
+author: "Hecho por: Alan Carrillo, Rodolfo García y Esteban Márquez"
+date: "Fecha: 11 de marzo del 2022"
+output:
+  rmarkdown::html_document:
+    theme: lumen
+    number_sections: true
+    toc: true
+    df_print: paged
+    latex_engine: lualatex
+  df_print: kable
+---
+
+```{r global-options, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+```
+![](C:\Users\Esteban\Desktop\ITESO\8°\Análisis de Riesgos\BIMBOA.MX\Grupo_Bimbo.jpg)
+
+```{r Librerías, warning=FALSE}
+library(fpp3) 
+library(tidyquant)
+library(plotly) 
+library(quantmod)
+library(rcompanion)
+library(PerformanceAnalytics)
+library(tidyverse)
+library(moments)
+library(lubridate)
+```
+## Precios desde inicio de cotización.
+
+**Nota**: BIMBOA.MX cotiza en la BMV desde 1980, sin embargo, mediante *getSymbols* con la api de Yahoo, se hacen disponibles sus precios desde el 3 de enero del 2000 como se observa a continuación: 
+
+```{r Descarga_de_precios, warning=FALSE, include=FALSE}
+  clave <- c('BIMBOA.MX')
+  getSymbols(na.omit(clave),from= '1980-01-01' , src="yahoo")
+  lista <- lapply(clave, function(x) Cl(get(x)))
+  precio <- (do.call(merge,lista))
+``` 
+
+```{r}
+data.frame(precio)
+```
+
+```{r}
+chartSeries(to.monthly(na.omit(precio)), theme="black", up.col="blue", dn.col="gray",
+            name = paste("Precio de", clave),
+            TA=c(addVo(),addBBands()))
+```
+
+## Estimación de rendimientos y volatilidades diarias y anualizadas desde inicio de cotización.
+
+### Histograma de Rendimientos.
+
+```{r rendimientos diarios y anualizados e histograma de rendimientos diarios, echo=FALSE}
+#Retornos y densidad
+Rend <- diff(log(na.omit(precio)))
+dx <- density(na.omit(Rend))
+#Gráficos
+hist(Rend, n=100,main=paste("Histograma de Rendimientos de", clave), col="brown", freq = FALSE, xlab="Rendimientos", ylab="Densidad")
+lines(dx, lwd = 2, col = "blue")
+#Estética
+axis(1, tck=1, col.ticks="black", lwd=1, lty = 2)
+axis(1, tck=1, at = seq(-.20, .20, by = .025), col.ticks= "black", lty = 2, lwd=.5)
+axis(2, tck=1, col.ticks="black", lwd=1, lty = 2)
+box()
+```
+
+A través del histograma de los rendimientos es fácil identificar que la media de sus rendimientos es $\mu≈0$.
+
+### Rendimientos y Volatilidades diarias y anuales.
+
+```{r, echo=FALSE}
+names(precio) <- c("precio")
+names(Rend) <- c("rendimiento")
+Anio <- year(Rend)
+
+Est_Prin <- Rend %>% 
+  as_tibble() %>% 
+  mutate(year=Anio) %>%
+  group_by(year) %>%
+  summarise(RenDiario=mean(rendimiento),
+            RenAnual=mean(rendimiento)*252,
+            VolDiaria=sd(rendimiento),
+            VolAnual=sqrt(var(rendimiento)*252))
+
+Est_Prin
+```
+
+
+
+Como se puede observar, el rendimiento ($\mu_i$) ha sido mayor en los años 2009 y 2021 a causa de la recuperación de las crisis respectivas en años anteriores. Esto causó que la volatilidad anual, conocida matemáticamente como la desviación estándar ($\sigma$), se incrementará por encima que cualquier otro año.
+
+Rendimiento:
+$$R_i = L_n(S_i)-L_n(S_{i-1}) = L_n\left(\frac{S_i}{S_{i-1}}\right)$$
+
+Desviación estándar:
+
+$$\sigma = \sqrt{\frac{\sum(x_i-\mu)^2}{n}}$$
+```{r}
+Rend <- na.omit(diff(log(na.omit(precio))))
+```
+
+```{r}
+names(precio) <- c('precio')
+names(Rend) <- c('rendimiento')
+Anio <- year(Rend)
+Ren_Diario_Todo <- mean(Rend)
+Vol_Diario_Todo <- sd(Rend)
+```
+
+```{r}
+Variable <- c('Rendimiento poblacional:', 'Desviación estándar poblacional:')
+Valor <- c(Ren_Diario_Todo, Vol_Diario_Todo)
+
+df <- data.frame(Variable, Valor)
+df
+```
+
+
+
+## Pruebas de normalidad sobre el rendimiento, el precio y el logaritmo del precio.
+
+Mediante las pruebas de hipótesis es que se demostrará a continuación si las siguientes variables aleatorias están distribuidas normalmente al tener $\mu≈0$ y $\sigma≈1$ con función de densidad $f_x(x) = \frac{1}{\sqrt{2\pi}\sigma}e^{-\frac{(x-\mu)^2}{2\sigma^2}}$.
+
+
+```{r Densidades, echo=FALSE}
+#Retornos y densidad
+Rend <- diff(log(na.omit(precio)))
+dx <- density(na.omit(Rend))
+#Gráficos
+plotNormalHistogram(Rend, n=100,main=paste("Histograma de Rendimientos de", clave), col="brown", prob = TRUE, xlab="Rendimientos", ylab="Densidad", )
+lines(dx, lwd = 2, col = "red")
+legend("topright", c("Densidad Normal fx", "Densidad de rendimientos"), box.lty = 0,
+          lty = 1, col = c("blue", "red"), lwd = c(1, 2))
+#Estética
+axis(1, tck=1, col.ticks="black", lwd=1, lty = 2)
+axis(1, tck=1, at = seq(-.20, .20, by = .025), col.ticks= "black", lty = 2, lwd=.5)
+axis(2, tck=1, col.ticks="black", lwd=1, lty = 2)
+box()
+```
+
+Para proceder a realizar las pruebas de hipótesis de hace la declaración de la hipótesis nula $H_0$ que indica normalidad en la variable de estudio y la declaración de la hipótesis alternativa $H_1$ que indica que la variable no presenta valores normalmente distribuidos.
+
+
+### Prueba de Jarque Bera.
+
+#### Rendimientos.
+Para comenzar se utilizará la prueba de Jarque Bera que compara el sesgo y la curtosis de una distribución con la de una normal. Si el sesgo es cero y la curtosis es 3, la distribución es normal por ende la prueba de Jarque Bera nos indicaría mediante el p-value que es mayor a un nivel de significancia $\alpha$ de .01.
+
+```{r}
+Rend <- na.omit(diff(log(na.omit(precio))))
+```
+
+```{r Sesgo y Curtosis de Rendimientos}
+kurt <- kurtosis(Rend)
+skew <- skewness(Rend)
+```
+
+```{r}
+jb_params <- c('Curtosis', 'Sesgo')
+jb_val <- c(kurt, skew)
+
+jb <- data.frame(jb_params, jb_val)
+jb
+```
+
+```{r Prueba de Jarque-Test de rendimientos, echo=FALSE}
+jarque.test(as.numeric(Rend))
+```
+Primeramente identificamos que la curtosis no se aproxima a 3 y el sesgo es mayor a 0 y confirmamos nuestra presunción de que los rendimientos no presenten el comportamiento de una distribución normal al rechazar la hipotesis nula por que el p-value es casi cero y es menor a nuestro $\alpha$ dado. 
+
+
+Es decir que rechazamos $H_0$ al ser nuestro *p-value* menor que .01, es decir, que con un nivel de significancia de 99% se rechaza la hipótesis de que los rendimientos presenten una distribución normal.
+
+#### Precios.
+Para evaluar la normalidad de los precios mediante la prueba de Jarque Bera compararemos nuestro p-value obtenido contra nuestro nivel de significancia $\alpha$ de .01.
+
+
+```{r Prueba de Jarque-Test de Precios, echo=FALSE}
+jarque.test(as.numeric(na.omit(precio)))
+```
+
+
+Rechazamos $H_0$ al ser nuestro *p-value* menor que .01, es decir, que con un nivel de significancia de 99% se rechaza la hipótesis de que los precios presenten una distribución normal.
+
+#### Logaritmo de los precios.
+Para evaluar la normalidad del logaritmo de los precios compararemos nuestro p-value obtenido contra nuestro nivel de significancia dado $\alpha$.
+
+
+```{r Prueba de Jarque-Test del Log de Precios, echo=FALSE}
+jarque.test(as.numeric(na.omit(log(precio))))
+```
+
+Se rechaza la hipótesis $H_0$ de que el logaritmo de los precios presenten una distribución normal.
+
+### Prueba de Rendimientos estadísticamente igual a cero.
+
+
+```{r, echo=FALSE}
+t.test(as.numeric(Rend))
+```
+Como nuestro p-value es mayor a nuestro nivel de significancia $\alpha$ no podemos rechazar la hipótesis $H_0$ que presume normalidad a través la media de los rendimientos estadísticamente igual a cero, por lo tanto $\mu≈0$.
+
+## Simulación con Ecuación ds.
+
+```{r include=FALSE}
+clave <- c('BIMBOA.MX')
+getSymbols(clave,from= '1980-01-01' ,warnings = FALSE)
+lista <- lapply(clave, function(x) Cl(get(x)))
+precio <- (do.call(merge,lista))
+
+Rend <- na.omit(diff(log(na.omit(precio))))
+names(precio) <- c('precio')
+names(Rend) <- c('rendimiento')
+Anio <- year(Rend)
+
+Est_Prin <- Rend %>%
+  as_tibble() %>%
+  mutate(date=Anio) %>%
+  group_by(date) %>% 
+  summarise(Ren_Anual  = mean(rendimiento)*252)
+
+Est_Prin_ts <- Est_Prin %>% mutate(date = date) %>%
+   as_tsibble(index = date)
+```
+
+Para la simulación necesitamos la ecuación del diferencial de precios:
+
+$$
+dS=S\mu dt+S\sigma dW
+$$
+
+Se necesitan los valores de $S_0$, $\mu$ y $\sigma$ con datos diarios, es decir:
+
+```{r echo=FALSE}
+n <- length(precio)
+So <- as.numeric(precio[n])
+So
+mu <- Ren_Diario_Todo
+sigma <- Vol_Diario_Todo
+mu
+sigma
+```
+
+Con estos datos efectuaremos una simulación de la siguiente forma:
+
+$$
+dS=56.46(0.00043431) dt+56.46(0.01904202) dW
+$$
+```{r}
+help(rnorm)
+```
+
+### Simulación del precio dentro de 10 días (*dt=10*).
+
+```{r,warning=FALSE, echo=FALSE}
+dt_10 <- 10
+epsilon_10 <- rnorm(n=1000000, mean=0, sd=1)
+ds_10 <- So*mu*dt_10+So*sigma*sqrt(dt_10)*epsilon_10
+Esperado_Cambio_10 <- mean(ds_10)
+PE_10 <- So+Esperado_Cambio_10
+PE_10
+```
+
+#### Intervalo de confianza al 95%.
+
+```{r,echo=FALSE}
+Var_Cambio_10 <- var(ds_10)
+Des_Cambio_10 <- sqrt(Var_Cambio_10)
+z = qnorm(0.025)
+
+PE_10-z*Des_Cambio_10
+PE_10+z*Des_Cambio_10
+```
+
+Como podemos observar el intervalo esta entre esos 2 valores.
+
+### Simulación del precio dentro de 20 días (*dt=20*).
+
+```{r,warning=FALSE, echo=FALSE}
+dt_20 <- 20
+epsilon_20 <- rnorm(n=1000000, mean=0, sd=1)
+ds_20 <- So*mu*dt_20+So*sigma*sqrt(dt_20)*epsilon_20
+Esperado_Cambio_20 <- mean(ds_20)
+PE_20 <- So+Esperado_Cambio_20
+PE_20
+```
+
+#### Intervalo de confianza al 95%.
+
+```{r,warning=FALSE, echo=FALSE}
+Var_Cambio_20 <- var(ds_20)
+Des_Cambio_20 <- sqrt(Var_Cambio_20)
+z = qnorm(0.025)
+
+PE_20-z*Des_Cambio_20
+PE_20+z*Des_Cambio_20
+```
+
+Como podemos observar el intervalo de confianza al 95% para *dt=20* esta entre los valores anteriores.
+
+### Simulación del precio dentro de 40 días (*dt=40*).
+
+```{r,warning=FALSE, echo=FALSE}
+dt_40 <- 40
+epsilon_40 <- rnorm(n=1000000, mean=0, sd=1)
+ds_40 <- So*mu*dt_40+So*sigma*sqrt(dt_40)*epsilon_40
+Esperado_Cambio_40 <- mean(ds_40)
+PE_40 <- So+Esperado_Cambio_40
+PE_40
+```
+
+#### Intervalo de confianza al 95%.
+
+```{r,warning=FALSE, echo=FALSE}
+Var_Cambio_40 <- var(ds_40)
+Des_Cambio_40 <- sqrt(Var_Cambio_40)
+z = qnorm(0.025)
+
+PE_40-z*Des_Cambio_40
+PE_40+z*Des_Cambio_40
+```
+
+El intervalo de confianza al 95% para *dt=40* esta entre los cálculos anteriores.
+
+### *Tabla de precios esperados*.
+
+```{r,,warning=FALSE, echo=FALSE}
+ds <- tibble('10 Días'=PE_10,
+             '20 Días'=PE_20,
+             '40 Días'=PE_40)
+ds
+```
+
+## Ecuación $\ln(S_t)$ con datos anuales.
+
+Para esto necesitaremos nuestra siguiente ecuación:
+
+$$\ln(S_{t+1})=\ln(S_t)+(\mu-\frac{1}{2}\sigma^2) dt+\sigma dW$$ En este caso necesitaremos los valores de S, mu, sigma pero estos dos últimos de forma anual.
+
+```{r echo=FALSE}
+n_2 <- length(precio)
+So_2 <- as.numeric(precio[n])
+mu_2 <- mean(Est_Prin_ts$Ren_Anual)
+sigma_2 <- sqrt(var(Est_Prin_ts$Ren_Anual))
+So_2
+mu_2
+sigma_2
+```
+
+Nuestra ecuación quedaría así:
+
+$$\ln(S_{t+1})=\ln(56.46)+((0.08425598)-\frac{1}{2}(0.2516523)^2) dt+(0.2516523)dW$$
+
+### Para 3 meses, dt = $\frac{1}{3}$.
+
+```{r,warning=FALSE, echo=FALSE}
+dt_3 <- 1/3
+epsilon_3 <- rnorm(n=1000000, mean=0, sd=1)
+ln_st_3 <- log(So_2)+((mu_2)-(1/2)*(sigma_2)^2)*dt_3+sigma_2*sqrt(dt_3)*epsilon_3
+Esperado_Cambio_3 <- mean(ln_st_3)
+PE_3 <- So_2+Esperado_Cambio_3
+PE_3
+```
+
+#### Intervalo de confianza al 95%.
+
+```{r, warning=FALSE, echo=FALSE}
+Var_Cambio_3 <- var(ln_st_3)
+Des_Cambio_3 <- sqrt(Var_Cambio_3)
+z = qnorm(0.025)
+
+PE_3-z*Des_Cambio_3
+PE_3+z*Des_Cambio_3
+```
+
+Como podemos observar el intervalo esta entre esos 2 valores.
+
+### Para 6 meses, dt = $\frac{1}{6}$.
+
+```{r,warning=FALSE, echo=FALSE}
+dt_6 <- 1/6
+epsilon_6 <- rnorm(n=1000000, mean=0, sd=1)
+ln_st_6 <- log(So_2)+((mu_2)-(1/2)*(sigma_2)^2)*dt_6+sigma_2*sqrt(dt_6)*epsilon_6
+Esperado_Cambio_6 <- mean(ln_st_6)
+PE_6 <- So_2+Esperado_Cambio_6
+PE_6
+```
+
+#### Intervalo de confianza al 95%.
+
+```{r, warning=FALSE, echo=FALSE}
+Var_Cambio_6 <- var(ln_st_6)
+Des_Cambio_6 <- sqrt(Var_Cambio_6)
+z = qnorm(0.025)
+
+PE_6-z*Des_Cambio_6
+PE_6+z*Des_Cambio_6
+```
+
+Como podemos observar el intervalo esta entre esos 2 valores.
+
+### Para 9 meses, dt = $\frac{1}{9}$.
+
+```{r,warning=FALSE, echo=FALSE}
+dt_9 <- 1/9
+epsilon_9 <- rnorm(n=1000000, mean=0, sd=1)
+ln_st_9 <- log(So_2)+((mu_2)-(1/2)*(sigma_2)^2)*dt_9+sigma_2*sqrt(dt_9)*epsilon_9
+Esperado_Cambio_9 <- mean(ln_st_9)
+PE_9 <- So_2+Esperado_Cambio_9
+PE_9
+```
+
+#### Intervalo de confianza al 95%.
+
+```{r, warning=FALSE, echo=FALSE}
+Var_Cambio_9 <- var(ln_st_9)
+Des_Cambio_9 <- sqrt(Var_Cambio_9)
+z = qnorm(0.025)
+
+PE_9-z*Des_Cambio_9
+PE_9+z*Des_Cambio_9
+```
+
+Como podemos observar el intervalo esta entre esos 2 valores.
+
+### Para 12 meses, dt = 1.
+
+```{r,warning=FALSE, echo=FALSE}
+dt_12 <- 1
+epsilon_12 <- rnorm(n=1000000, mean=0, sd=1)
+ln_st_12 <- log(So_2)+((mu_2)-(1/2)*(sigma_2)^2)*dt_12+sigma_2*sqrt(dt_12)*epsilon_12
+Esperado_Cambio_12 <- mean(ln_st_12)
+PE_12 <- So_2+Esperado_Cambio_12
+PE_12
+```
+
+#### Intervalo de confianza al 95%.
+
+```{r, warning=FALSE, echo=FALSE}
+Var_Cambio_12 <- var(ln_st_12)
+Des_Cambio_12 <- sqrt(Var_Cambio_12)
+z = qnorm(0.025)
+
+PE_12-z*Des_Cambio_12
+PE_12+z*Des_Cambio_12
+```
+
+Como podemos observar el intervalo esta entre esos 2 valores.
+
+### *Tabla de precios esperados*.
+
+```{r,,warning=FALSE, echo=FALSE}
+ln <- tibble('3 Meses'=PE_3,
+             '6 Meses'=PE_6,
+             '9 Meses'=PE_9,
+             '12 Meses'=PE_12)
+ln
+```
+
+# Conclusión. 
+
+Se rechazó la hipótesis de que los rendimientos, los precios y el logaritmo de los precios tuvieran una distribución normal porque el *p-value* de sus pruebas fueron menor a $\alpha=0.01$, más sin embargo, se demostró que sus rendimientos 
+$\mu≈0$. Después simulamos los precios esperados con las ecuaciones: $$dS=S\mu dt+S\sigma dW$$, $$\ln(S_{t+1})=\ln(S_t)+(\mu-\frac{1}{2}\sigma^2) dt+\sigma dW$$ y se concluye que por el elemento estocástico de los resultados basados en históricos, sería anticipado tomar decisiones financieras importantes sin ántes tomar en consideración otros aspectos implícitos en el movimiento de los precios como el análisis técnico, el análisis fundamental y posiblemente incluso estudios macroeconómicos.

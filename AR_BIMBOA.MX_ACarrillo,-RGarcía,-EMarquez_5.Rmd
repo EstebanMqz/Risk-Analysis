@@ -1,0 +1,458 @@
+---
+title: "AR_BIMBOA.MX_ACarrillo,-RGarcía,-EMarquez_5"
+author: "Hecho por: Alan Carrillo, Rodolfo García y Esteban Márquez"
+date: "Fecha: 1 de mayo del 2022"
+output:
+  rmarkdown::html_document:
+    theme: lumen
+    number_sections: true
+    toc: true
+    df_print: paged
+    latex_engine: lualatex
+  df_print: kable
+---
+
+```{r, include=FALSE}
+library(fpp3) 
+library(fGarch)
+library(ggplot2)
+library(lubridate)
+library(moments)
+library(PerformanceAnalytics)
+library(plotly) 
+library(quantmod)
+library(rcompanion)
+library(stats)
+library(tibble)
+library(tidyquant)
+library(tidyverse)
+library(tseries)
+```
+
+# Parte 5: Valor en Riesgo.
+
+#### Instrucciones. 
+- Seleccionar un activo además del propio y con los dos construir un portafolio que contenga **100 acciones de cada activo**. Determinar el Valor en Riesgo paramétrico y no paramétrico del portafolio ficticio a **1,5,10 y 20 días**. En el caso de la metodología no paramétrica el estudiante deberá utilizar simulación histórica (con datos desde 2016 y el valor de So del día que se aplique la metodología en clase). En el caso de estimación paramétrica deberá usar el valor de la **volatilidad promedio diaria** de los últimos seis meses y el valor de So, será el del que se aplique la metodología en clase.
+
+• En el caso de la estimación **No paramétrica** deberá presentar la *gráfica correspondiente donde se aprecia el VaR a un día a los tres niveles de confianza estimados*. 
+
+• Hacer el **Backtesting** para el VaR a un día de ambas metodologías. 
+
+• Encontrar la **composición óptima** del portafolio que minimice el Valor en Riesgo. 
+
+*Opciones generales de código y presentación en html:*
+
+```{r global-options, echo=TRUE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+#### Activos: BIMBOA.MX y AMXL.MX.
+
+```{r Descarga de precios}
+datos <- new.env()
+clave <- c('BIMBOA.MX', 'AMXL.MX')
+getSymbols(clave, from = "2016-01-01", env = datos)
+precio1 <- datos[["BIMBOA.MX"]][,6] 
+precio2 <- datos[["AMXL.MX"]][,6] 
+names(precio1) <- "BIMBOA.MX"
+names(precio2) <- "AMXL.MX"
+precios <- merge.xts(precio1,precio2)
+rendimientos <-na.omit(diff(log(precios)))
+```
+## VaR Paramétrico.
+El cálculo del VaR paramétrico determina la pérdida máxima que se puede obtener y hace uso o de la varianza homocedástica (constante y anual) o la heterocedástica (no constante y a partir de un modelo de varianza) y asume que las posibles pérdidas en un lapso determinado forman una distribución normal con $\mu$ y $\sigma^2$ que pueden o no ser constantes en el tiempo. 
+
+### Valor del Portafolio.
+
+El comportamiento mensual del valor del portafolio desde el 2016 se aprecia en la sigs. gráficas con sus Bandas de Bollinger que incorporan 2$\sigma$ en su línea roja. 
+
+```{r Comportamiento del portafolio}
+n1 <- 100
+n2 <- 100
+port <- (n1*precio1)+(n2*precio2)
+v_port <- tail(port,1)
+names(v_port) <- 'Portafolio'
+chartSeries(to.monthly(port), theme="black", up.col="blue", dn.col="red",
+            name = paste("Precio de 100 acciones de", clave))
+addBBands()
+```
+
+La volatilidad en velas mensuales nos indica de un posible retroceso en nuestro portafolio.
+
+El valor del portafolio está dado por: $V_p=(S_{0_{BIMBO}}+S_{0_{AMXL}})*100$ y sus valores fueron los sigs.:
+```{r Valor Actual del Portafolio}
+data.frame(port)
+```
+Su último valor fue de:
+```{r}
+v_port
+```
+
+### Matriz de Varianza Covarianza.
+
+La Matriz de covarianza de los últimos es:
+
+```{r Matriz de covarianza de los últimos 6 meses}
+getSymbols(clave, from = "2021-11-03", env = datos)
+precio1_6 <- datos[["BIMBOA.MX"]][,6] 
+precio2_6 <- datos[["AMXL.MX"]][,6] 
+names(precio1_6) <- "BIMBOA.MX"
+names(precio2_6) <- "AMXL.MX"
+precios_6 <- merge.xts(precio1_6,precio2_6)
+rendimientos_6 <-na.omit(diff(log(precios_6)))
+cov <- cov(rendimientos_6)
+cov
+```
+
+### Vector de pesos $w$.
+
+Los pesos del portafolio son de 77.11% para BIMBOA.MX y de 22.89% para AMXL.MX:
+
+```{r Vector W}
+port <- (n1*precio1)+(n2*precio2)
+v_port <- tail(port,1)
+w_1 <- (n1*precio1) / v_port
+w_2 <- (n2*precio2) / v_port
+w <- cbind(w_1,w_2)
+w
+```
+### Volatilidad del portafolio **(6meses)**.
+
+La volatilidad del portafolio de 2 activos se puede calcular como $$\sigma_{port} =  \sqrt{{\begin{matrix} [W_1 + W_2] \end{matrix} \left[\begin{array}{ccc} \sigma_1^2 & cov(1,2)\\ cov(1,2) & \sigma_2^2 \end{array}\right] \left[\begin{array}{ccc} W_1\\ W_2 \end{array}\right]}}$$
+
+
+El portafolio tiene la volatilidad diaria y anualizada siguiente al día de la presente entrega para cada valor respectivamente:
+
+```{r Volatilidad del port.}
+s_port <- as.numeric(sqrt(w%*%cov%*%t(w)))
+s_port #Diaria
+s_port*sqrt(252) #Anual
+```
+
+### VaR del portafolio.
+
+El VaR de nuestro portafolio con 2 activos está dado por la sig. expresión:
+$$VaR_{port} =  \sqrt{{\begin{matrix} [VaR_1 + VaR_2] \end{matrix} \left[\begin{array}{ccc} 1 & \rho\\ \rho & 1 \end{array}\right] \left[\begin{array}{ccc} VaR_1 \\ VaR_2 \end{array}\right]}}$$
+Los valores z que utilizaremos de la distribución normal son los siguientes y corresponden a un intervalo de confianza de 99, 95 y 90%:
+
+```{r Valores z de dist normal}
+Z99 <- qnorm(.01)
+Z95 <- qnorm(.05)
+Z90 <- qnorm(.1)
+z <- c(Z99,Z95,Z90)
+z
+```
+
+El VaR Paramétrico a 1,5,10 y 20 días con intervalos de confianza de 90,95 y 99% se expresan en la sig. tabla:
+
+```{r Cálculo de VaRs}
+dias <- c(1,5,10,20)
+nxm <- matrix(nrow = 4,ncol = 3)
+
+for (j in 1:3){
+  for (i in 1:4){
+    nxm[i,j] <- sqrt(dias[i])*v_port*s_port*z[j]
+  }
+}
+VaR_Param <- as.data.frame(nxm)
+VaR_Param$Dias <- dias
+names(VaR_Param) <- c("99%","95%","90%","Días")
+VaR_Param
+```
+
+### Histograma del VaR.
+
+```{r Histograma de Vars a 1día}
+#1día
+VaR1d_90 <- VaR_Param[1, 3]
+VaR1d_95 <- VaR_Param[1, 2]
+VaR1d_99 <- VaR_Param[1, 1]
+
+#Histograma
+Perdidas_o_Ganancias <- na.omit(diff(port))
+hist(Perdidas_o_Ganancias, n=100, freq=FALSE, main=paste("VaRs a 1 día"), col="orange", ylab="Densidad")
+lines(density(Perdidas_o_Ganancias), col='purple', lwd=2)
+
+#Estética
+axis(1, tck=1, col.ticks="black", lwd=1, lty = 2)
+axis(1, tck=1, at = seq(-.20, .20, by = .025), col.ticks= "black", lty = 2, lwd=.5)
+axis(2, tck=1, col.ticks="black", lwd=1, lty = 2)
+box()
+
+#Gráficos de VaRs a 1d.
+abline(v=VaR1d_90, col='red', lwd=3)
+abline(v=VaR1d_95, col='red', lwd=3)
+abline(v=VaR1d_99, col='red', lwd=3)
+```
+
+El VaR a 1 día que significa la máxima pérdida potencial que podría tener el portafolio para mañana es de 238.14, 305.65, 432.29mxn con intervalos de confianza del 90%, 95% y 99% respectivamente.
+
+### Backtesting.
+
+```{r Backtesting}
+btest_90 <- ifelse(Perdidas_o_Ganancias<VaR1d_90,1,0)
+btest_95 <- ifelse(Perdidas_o_Ganancias<VaR1d_95,1,0)
+btest_99 <- ifelse(Perdidas_o_Ganancias<VaR1d_99,1,0)
+
+(sum(btest_90)/nrow(btest_90))*100
+(sum(btest_95)/nrow(btest_95))*100
+(sum(btest_99)/nrow(btest_99))*100
+
+```
+Como se puede observar las pérdidas o ganancias diarias observadas para el portafolio creado con BIMBO y America Móvil exceden al VaR en las anteriores proporciones y el riesgo con nuestros valores de significancia se expresa en la sig. tabla:
+
+```{r Comparacion}
+Resultado <- tibble(ifelse(sum(btest_90)/nrow(btest_90)*100<10, 'Adecuado', 'No Adecuado'),
+                           ifelse(sum(btest_95)/nrow(btest_95)*100<5, 'Adecuado', 'No Adecuado'),
+                           ifelse(sum(btest_99)/nrow(btest_99)*100<1, 'Adecuado', 'No Adecuado'))
+names(Resultado) <- c('90%', '95%', '99%')
+Resultado
+```
+
+
+### Pesos óptimos para minimizar el VaR.
+
+Los pesos óptimos del portafolio que minimizan el VaR son son de 11.73% para BIMBO y de 88.27% para AMXL.
+
+```{r Composición optima}
+w1_opt <- (2*cov[2,2]-2*cov[1,2]) / (2*cov[1,1] + 2*cov[2,2] + 4*cov[1,2])
+w2_opt <- 1- w1_opt 
+
+w_optimo <- cbind(w1_opt, w2_opt)
+names(w_optimo) <- c("BIMBOA.MX", "AMXL.MX")
+w_optimo
+```
+En otras palabras, se debe reducir la exposición del portafolio en -0.6538% equivalente a 5684.77mxn para BIMBOA.MX y aumentar dicha cantidad en AMXL.MX.
+
+```{r Modificación de pesos a óptimos}
+(w_optimo-w)*as.numeric(v_port[1,1])
+```
+
+### VaR con pesos óptimizados.
+
+El VaR a 1d mínimo con las anteriores modificaciones en las proporciones al portafolio es el siguiente:
+
+```{r VaR 1d con 99% de confianza con pesos óptimos}
+n<-nrow(precios)
+p_a1 <- as.numeric(precios[n,1])
+p_a2 <- as.numeric(precios[n,2])
+a1<-100
+a2<-100
+
+Z99 <- qnorm(.01)
+sigma_opt <- sqrt(w_optimo%*%cov%*%t(w_optimo))
+val_p_opt <- w1_opt*p_a1*n1 + w2_opt*p_a2*n2
+
+VaR_opt <- val_p_opt*sigma_opt*Z99
+VaR_opt[1,1]
+```
+
+
+## VaR No Paramétrico.
+
+El VaR no Paramétrico utiliza datos históricos porque su distribución no es normal. La diferencia que existe entre el VaR Paramétrico y el que se presenta a continuación es que el VaR no Paramétrico utiliza simulaciones para lo cual se hace uso de sus históricos.
+Del mismo modo, se calculará a 1,5,10 y 20 días con intervalos de confianza de 90,95 y 99%.
+
+
+```{r Descarga de precios y valor del portafolio}
+datos <- new.env()
+clave <- c('BIMBOA.MX', 'AMXL.MX')
+getSymbols(clave, from = "2016-01-01", env = datos)
+precio1 <- datos[["BIMBOA.MX"]][,6] 
+precio2 <- datos[["AMXL.MX"]][,6] 
+names(precio1) <- "BIMBOA.MX"
+names(precio2) <- "AMXL.MX"
+rend1 <- na.omit(diff(log(precio1)))
+rend2 <- na.omit(diff(log(precio2)))
+precios <- merge.xts(precio1,precio2)
+rendimientos <- merge.xts(rend1,rend2)
+n1<-100
+n2<-100
+n<-nrow(precios)
+p_a1 <- as.numeric(precios[n,1])
+p_a2 <- as.numeric(precios[n,2])
+v_port <- p_a1*n1+p_a2*n2
+v_port
+```
+
+### Simulaciones
+
+Las simulaciones se realizan de manera que se utiliza la siguiente fórmula $S_{t+1,n}=S_0(1+R_n)$ que expresa el cambio en el precio con algún rendimiento de los históricos observados. 
+
+```{r Simulaciones}
+dia_estimado <- date(precios[n,1])+1
+esc_estimado <- seq(1:(n-1))
+precio_e_a1<-as.data.frame(p_a1*(1+rendimientos[,1]), row.names = paste("Escenario", esc_estimado))
+names(precio_e_a1)<-dia_estimado
+precio_e_a2<-as.data.frame(p_a2*(1+rendimientos[,2]), row.names = paste("Escenario", esc_estimado))
+names(precio_e_a2)<-dia_estimado
+```
+
+Los valores estimados están en el siguiente dataframe.
+
+```{r Valores estimados}
+v_est <- precio_e_a1*n1+precio_e_a2*n2
+data.frame(v_est)
+```
+
+El rendimiento promedio $\mu$ para el día de mañana 3 de Mayo es de:
+
+```{r mu de simulaciones}
+mu_v_est <- mean(v_est[,'2022-05-03'])
+((mu_v_est-v_port)/v_port)*100
+```
+Eso significa que el portafolio se vería así al día de mañana en base a nuestras simulaciones:
+
+### Perdidas/Ganancias.
+
+```{r P/G}
+fpg <- v_est-v_port
+
+VaR90 <- quantile(na.omit(fpg[,1]),.1)
+VaR95 <- quantile(na.omit(fpg[,1]),.05)
+VaR99 <- quantile(na.omit(fpg[,1]),.01)
+
+VaR <- data.frame("VaR99"=VaR99, "VaR95"=VaR95, "VaR90"=VaR90, row.names = dia_estimado)
+
+hist(v_est[,1], n = 50, freq=FALSE, main = "Valor Estimado del Portafolio a 1d", ylab="Densidad", xlab = "Pesos")
+abline(v=v_port, col="blue", lwd=2)
+
+#Estética
+axis(1, tck=1, col.ticks="black", lwd=1, lty = 2)
+axis(1, tck=1, at = seq(-.20, .20, by = .025), col.ticks= "black", lty = 2, lwd=.5)
+axis(2, tck=1, col.ticks="black", lwd=1, lty = 2)
+box()
+```
+Simulaciones contenidas en esta tabla:
+```{r}
+data.frame(fpg)
+```
+
+
+```{r VaR a 1d}
+VaR99 <- quantile(na.omit(fpg[,1]),.01)
+VaR95 <- quantile(na.omit(fpg[,1]),.05)
+VaR90 <- quantile(na.omit(fpg[,1]),.1)
+VaR <- data.frame("VaR99"=VaR99, "VaR95"=VaR95, "VaR90"=VaR90, row.names = dia_estimado)
+```
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+hist(fpg[,1],nclass = 30, main="Perdidas y Ganancias", xlab="Pesos")
+abline(v=VaR99,col="red", lwd=2)
+text(-1500,250,paste("Valor Inicial"), col="black")
+dia_inicial<-date(precios[n,1])
+
+
+text(paste("Fecha Inicial",dia_inicial), col="black")
+text(paste("Fecha Est",dia_estimado), col="black")
+text(paste("VaR99",VaR99), col="red")
+abline(v=VaR95,col="blue", lwd=2)
+text(paste("VaR95",VaR95), col="red")
+abline(v=VaR90,col="purple", lwd=2)
+text(paste("VaR90",VaR90), col="red")
+```
+
+VaR para 1, 5, 10 y 20 días
+```{r message=FALSE, echo=FALSE, warning=FALSE}
+diasVaR <- c(1,5,10,20)
+VaR1dia <- c(VaR99,VaR95,VaR90)
+aux <- matrix(nrow = 4,ncol = 3)
+
+for (j in 1:3){
+  for (i in 1:4){
+    aux[i,j] <- sqrt(diasVaR[i])*VaR1dia[j]
+  }
+}
+VaRnoParametrico <- as.data.frame(aux)
+VaRnoParametrico$Dias <- diasVaR
+names(VaRnoParametrico) <- c("99%","95%","90%","# de Días")
+VaRnoParametrico
+```
+
+### Backtesting 
+
+Pérdidas/Ganancias.
+
+```{r message=FALSE, echo=FALSE, warning=FALSE}
+vp <- a1*precio1 + a2*precio2
+per_gan <- na.omit(diff(vp))
+hist(fpg[,1], n=30, main = "Pérdidas y Ganancias")
+```
+
+Backtesting
+
+```{r message=FALSE, echo=FALSE, warning=FALSE}
+btest99 <- ifelse(per_gan < VaR99,1,0)
+btest95 <- ifelse(per_gan < VaR95,1,0)
+btest90 <- ifelse(per_gan < VaR90,1,0)
+```
+
+El VaR se compara a continuación con nuestros niveles de significancia de 1, 5 y 10%.
+
+```{r message=FALSE, echo=FALSE, warning=FALSE}
+percent <- function(x, digits = 2, format = "f", ...) {
+   paste0(formatC(100 * x, format = format, digits = digits, ...), "%")
+ }
+eV99<-percent(sum(btest99)/nrow(btest99),2)
+eV95<-percent(sum(btest95)/nrow(btest95),2)
+eV90<-percent(sum(btest90)/nrow(btest90),2)
+
+c99 <- ifelse((sum(btest99)/n)<=.01,"Adecuado","Excede")
+c95 <- ifelse((sum(btest95)/n)<=.05,"Adecuado","Excede")
+c90 <- ifelse((sum(btest90)/n)<=.1,"Adecuado","Excede")
+e <- as.data.frame(cbind(eV99, eV95, eV90))
+names(e) <- c("99%", "95%", "90%")
+c <- as.data.frame(cbind(c99,c95,c90))
+names(c) <- c("99%", "95%", "90%")
+Back_Test <- rbind(e,c)
+Back_Test
+```
+
+
+### Composición optima del portafolio que minimice el riesgo.
+
+```{r message=FALSE, echo=FALSE, warning=FALSE}
+rendimientos <-na.omit(diff(log(precios)))
+seisMeses <- c(today()-182,today()-1) 
+covarianza <- cov(rendimientos[seisMeses])
+w1_opt <- (2*covarianza[2,2]-2*covarianza[1,2]) / (2*covarianza[1,1] + 2*covarianza[2,2] + 4*covarianza[1,2])
+w2_opt <- 1- w1_opt
+
+w_optimo <- cbind(w1_opt, w2_opt)
+w_optimo1 <- as.data.frame(w_optimo)
+names(w_optimo1) <- c("BIMBOA.MX", "AMXL.MX")
+w_optimo1
+```
+
+
+### VaR optimo
+
+```{r message=FALSE, echo=FALSE, warning=FALSE}
+sigma_comp_optima <- sqrt(w_optimo%*%covarianza%*%t(w_optimo))
+val_port_opt <- w1_opt*p_a1 + w2_opt*p_a2
+Z99 <- qnorm(.01)
+VaR_minimo <- as.data.frame(val_port_opt*sigma_comp_optima*Z99)
+names(VaR_minimo) <- c("VaR Optimo")
+VaR_minimo
+```
+
+#### Paso 7: Estimar el VAR con los quantiles 
+
+En el caso del VAR al 99% para un día, tendríamos lo siguiente:
+
+```{r}
+var99 <- quantile(fpg[,1],0.01)
+var99
+```
+
+
+
+
+
+
+
+
+
+
+
+
